@@ -1,0 +1,7 @@
+*.old
+*.ini
+empty.png
+!res/empty.png
+i_view32.exe
+!res/i_view32.exe
+README.txt
