@@ -1,52 +1,43 @@
-﻿/*
- * =============================================================================================== *
- * Author           : RaptorX   <graptorx@gmail.com>
- * Script Name      : CRename
- * Script Version   : 1.7
- * Homepage         : -
- *
- * Creation Date    : September 18, 2010
- * Modification Date: February 10, 2013
- *
- * Description      :
- * ------------------
- *
- * -----------------------------------------------------------------------------------------------
- * License          :           Copyright ©2010 RaptorX <GPLv3>
- *
- *          This program is free software: you can redistribute it and/or modify
- *          it under the terms of the GNU General Public License as published by
- *          the Free Software Foundation, either version 3 of the License, or
- *          (at your option) any later version.
- *
- *          This program is distributed in the hope that it will be useful,
- *          but WITHOUT ANY WARRANTY; without even the implied warranty of
- *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *          GNU General Public License for more details.
- *
- *          You should have received a copy of the GNU General Public License
- *          along with this program.  If not, see <http://www.gnu.org/licenses/gpl-3.0.txt>
- * -----------------------------------------------------------------------------------------------
- *
- * [GUI Number Index]
- *
- * GUI 01 - Main [CRename]
- *
- * =============================================================================================== *
+/*
+	* =============================================================================================== *
+	* Author           : RaptorX   <graptorx@gmail.com>
+	* Script Name      : CRename
+	* Script Version   : 1.8
+	* Homepage         : -
+	*
+	* Creation Date    : September 18, 2010
+	* Modification Date: May 06, 2021
+	*
+	* Description      :
+	* ------------------
+	*
+	* -----------------------------------------------------------------------------------------------
+	* License          :           Copyright ©2010 RaptorX <GPLv3>
+	*
+	*          This program is free software: you can redistribute it and/or modify
+	*          it under the terms of the GNU General Public License as published by
+	*          the Free Software Foundation, either version 3 of the License, or
+	*          (at your option) any later version.
+	*
+	*          This program is distributed in the hope that it will be useful,
+	*          but WITHOUT ANY WARRANTY; without even the implied warranty of
+	*          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	*          GNU General Public License for more details.
+	*
+	*          You should have received a copy of the GNU General Public License
+	*          along with this program.  If not, see <http://www.gnu.org/licenses/gpl-3.0.txt>
+	* -----------------------------------------------------------------------------------------------
+	*
+	* =============================================================================================== *
  */
 
 ;+--> ; ---------[Directives]---------
 #NoEnv
 #SingleInstance Force
-; --
-SetBatchLines -1
-SendMode Input
-SetWorkingDir %A_ScriptDir%
-;-
 
 ;+--> ; ---------[Basic Info]---------
 s_name      := "CRename"                ; Script Name
-s_version   := "1.7"                    ; Script Version
+s_version   := "1.8"                    ; Script Version
 s_author    := "RaptorX"                ; Script Author
 s_email     := "graptorx@gmail.com"     ; Author's contact email
 ;-
@@ -56,457 +47,337 @@ sec         :=  1000                     ; 1 second
 min         :=  sec * 60                ; 1 minute
 hour        :=  min * 60                ; 1 hour
 ; --
-SysGet, mon, Monitor                    ; Get the boundaries of the current screen
-SysGet, wa_, MonitorWorkArea            ; Get the working area of the current screen
-mid_scrw    :=  a_screenwidth / 2       ; Middle of the screen (width)
-mid_scrh    :=  a_screenheight / 2      ; Middle of the screen (heigth)
-; --
-s_ini       :=                          ; Optional ini file
-s_xml       :=                          ; Optional xml file
-;-
+SysGet, screen_, MonitorWorkArea            ; Get the working area of the current screen
 
 ;+--> ; ---------[User Configuration]---------
-iview       := "i_view32.exe"
-depdate     := "dept|day|month|year"
-olddepdate  := depdate . "|name"
-anclist     := olddepdate . "|preview|SAC|SAP|GB_NN|FileList|press|LockDept"
-current     := 1
-previous    := 1
+iview := "i_view32.exe"
+depSettings := A_ScriptDir "\departments.ini"
 ;-
 
 ;+--> ; ---------[Main]---------
 onMessage(0x202, "WM_LBUTTONUP")
-if !FileExist("empty.png")
-{
-	FileInstall, res\empty.png, empty.png
-	FileInstall, res\i_view32.exe, i_view32.exe
-}
-; RegWrite, REG_SZ, HKCR, SystemFileAssociations\image\shell\CRename\command,,"%a_scriptfullpath%" "`%1"
 
-; if 0 > 0            ; A parameter was passed
-	; FileAppend, % %1%, % a_temp . "\files"
-hpic := wa_Bottom-50-10
-lvsz := hpic -195
-Gui, +Resize +MaximizeBox +MinSize
+if (!FileExist("departments.ini")) {
+	FileInstall, res\i_view32.exe, % "i_view32.exe", % true
+	FileInstall, res\empty.png, % "empty.png", % true
+
+	Loop, 13
+	{
+		index := A_Index = 13 ? 99 : format("{:02}", A_Index)
+		
+		deps .= index "=`n"
+	}
+	FileAppend, % "[departments]`n" deps, % "departments.ini"
+}
+
+hpic := screen_Bottom - 50 - 10
+lvsz := hpic - 200 +1
+
+Gui, main:new, +MaximizeBox +MinSize hwnd$Main ;+Resize
+
 Gui, add, Picture, w-1 h%hpic% y10 +Border vpic, % "empty.png"
-; Gui, add, GroupBox, w230 h190 x+10 vGB_NN, % "New Name"
-Gui, add, Edit, w40 x+10 yp cred Section Limit2 Number gPreview vdept, % 00
-Gui, add, Text, x+10 yp+3, % "Department"
-Gui, add, Text, cblue x+10, % "{ Tab } to switch"
-Gui, add, Edit, cred w40 xs y+10 Limit2 Number gPreview vday, % "day"
-Gui, add, Edit, cred w40 x+5 Limit2 Number gPreview vmonth, % "month"
-Gui, add, Edit, cred w40 x+5 Limit2 Number gPreview vyear, % "year"
-Gui, add, Text, x+10 yp+3, % "Date"
-Gui, add, Edit, w200 xs y+10 Limit90 -WantReturn gPreview vname, % "Name"
-Gui, add, Text, w200 r2 y+10 center wrap vPreview, % "Preview: Invalid"
-Gui, add, Text, cblue center w200 y+10, % "{ + } to Magnify"
-Gui, add, Button, w100 h25 y+10 disabled gPrevious vSAP, % "Same && Next &Page"
-Gui, add, Button, w100 h25 x+10 +Default gContinue vSAC, % "Save && &Continue"
-Gui, add, Text,cblue center w100 xs disabled vpress,% "{ * }"
-Gui, add, Text,cblue center w100 x+10,% "{ Enter }"
-; Gui, add, Text, cred xs vpress,% "{ - } to break cycle"
-Gui, add, ListView, w230 h%lvsz% xs y+15 Grid +Sort AltSubmit -hdr gLV_Sub vFileList, % "File Name"
+Gui, add, Edit, w40 x+10 yp cRed Section Limit2 Number vdept gPreview, % 00
+Gui, add, Text, x+10 yp+3 vlbDept, % "Department"
+; Gui, add, Text, x+10 cBlue vhkTab, % "{ Tab } to switch"
+Gui, add, Edit, w40 xs y+10 cRed Limit2 Number vday gPreview, % "day"
+Gui, add, Edit, w40 x+5 cRed Limit2 Number vmonth gPreview, % "month"
+Gui, add, Edit, w40 x+5 cRed Limit2 Number vyear gPreview, % "year"
+Gui, add, Text, x+10 yp+3 vlbDate, % "Date"
+Gui, add, Edit, w200 xs y+10 -wantreturn vname gPreview, % "Name"
+Gui, add, Text, w200 r2 y+10 cRed center wrap vnamePreview, % "Preview: Invalid"
+Gui, add, Text, w200 y+10 cBlue center vlbMagnify, % "{ + } to Magnify"
+Gui, add, Button, w100 h25 y+10 disabled vnextPage gNext, % "Same && Next &Page"
+Gui, add, Button, w100 h25 x+10 +default vsaveContinue gSave, % "Save && &Continue"
+Gui, add, Text,w100 xs cBlue center disabled vpressAsterisk,% "{ * }"
+Gui, add, Text,w100 x+10 cBlue center vpressEnter,% "{ Enter }"
+Gui, add, ListView, w230 h%lvsz% xs y+15 grid sort altsubmit -hdr -tabstop vFileList glvHandler, % "fileName|filePath"
+
+LV_ModifyCol(1, 225), LV_ModifyCol(2, 0)
 Gui, Show,, % "CRename"
 
-GuiControl,Focus,dept
+GuiControl, Focus, dept
 Send, {Home}+{End}
 return
-;-
 
-;+--> ; ---------[Labels]---------
-GuiSize:
- anchor("pic", "hw.5x.25", True)
- anchor("FileList", "h", True)
- Loop, Parse, anclist, |
-	anchor(a_loopfield, "x", True)
-return
 
-GuiDropFiles:
- Gui, ListView, FileList
- addfiles("drop")
-return
-
-LV_Sub:
-LV_Modify(current, "Select")
-if (a_eventinfo && a_guievent = "normal")
+WM_LBUTTONUP(wParam, lParam, msg, hwnd)
 {
-LV_GetText(tempprev, a_eventinfo)
-GuiControl,, pic, % file_dir . "\" . tempprev
+	static EM_SETSEL := 0x00B1
 
-GuiControl,Focus,dept
-
-Send, {Home}+{End}
+	if (RegexMatch(A_GuiControl, "dept|day|month|year|name"))
+		SendMessage, % EM_SETSEL, 0, -1,, % "ahk_id " hwnd
 }
-return
 
-Previous:
- if (!new_name)
- {
-	MsgBox,16,% "Error", % "You cannot start a ""same as previous"" cycle without creating a new name first."
-	return
- }
+Preview(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
+{
+	global dept,day,month,year,name,namePreview,$Main
+	isValid := false
 
- if (inStr(new_name, "jpeg"))
-	oldext := substr(new_name, -3)
- else
-	oldext := substr(new_name, -2)
+	Gui, main:submit, nohide
 
- previous += 1
- char :=
- if InStr(new_name,".jpeg")
-	new_name := RegexReplace(new_name := RegexReplace(new_name,"\d+of\d+[^\s]",""), "\.\w{4}", "")
- else
-	new_name := RegexReplace(new_name := RegexReplace(new_name,"\d+of\d+[^\s]",""), "\.\w{3}", "")
- new_name := RegexReplace(new_name, "\s?" . ext . "\s?","")
- new_name := RegexReplace(new_name, "\s?" . oldext . "\s?","")
- Loop, Parse, olddepdate, |
-	GuiControl,, % a_loopfield, % old%a_loopfield%
- start()
- gdisable("disable")
- GuiControl,, Preview, % preview := "Preview: " new_name . a_space . previous . "of" . previous . "." ext
- Loop, % previous-1
- {
-	Loop, % previous-1
-	{
-		old := file_dir . "\" . new_name . a_space . a_index . "of" . previous-1 . "." . oldext
-		new := file_dir . "\" . new_name . a_space . a_index . "of" . previous . "." . oldext
-		FileMove, %old%, %new%
-		old := file_dir . "\" . new_name . a_space . a_index . "of" . previous-1 . "." . ext
-		new := file_dir . "\" . new_name . a_space . a_index . "of" . previous . "." . ext
-		FileMove, %old%, %new%
+	LV_GetText(filePath,row := (next:=LV_GetNext()) ? next : 1, 2)
+	SplitPath, filePath,,, fileExt
+
+	; independently verify each control
+	ctrlValue := %A_GuiControl%
+	if (A_GuiControl = "dept" && (RegExMatch(ctrlValue, "(0[1-9]|1[0-2]|99)") || ctrlValue == ""))
+	or (A_GuiControl = "day" && RegExMatch(ctrlValue, "(0[0-9]|[1-2][0-9]|3[0-1])"))
+	or (A_GuiControl = "month" && RegExMatch(ctrlValue, "(0[0-9]|1[0-2])"))
+	or (A_GuiControl = "year" && RegExMatch(ctrlValue, "\d{2}"))
+	or (A_GuiControl = "name" && !RegExMatch(ctrlValue,"[\\/:*?""<>|]"))
+		isValid := true
+
+	if (!RegExMatch(A_GuiControl, "i)filelist|pic")) {
+		Gui, font, % isValid ? "" : "cRed"
+		GuiControl, font, % A_GuiControl
 	}
-	old := file_dir . "\" . new_name . "." . oldext
-	new := file_dir . "\" . new_name . a_space . previous-a_index . "of" . previous . "." oldext
-	FileMove, %old% , %new%
 
-	LV_GetText(getext,current-a_index)
-	if (inStr(getext, "jpeg"))
-		ext := substr(getext, -3)
+	if (A_GuiControl != "name" && isValid)
+	&& (WinActive("ahk_id " $Main))
+		Send, {Tab}
+
+	if (RegExMatch(dept day month year name, "i)dept|day|month|year"))
+	or (RegExMatch(name,"[\\/:*?""<>|]"))
+	or (name = "")
+		isValid := false
 	else
-		ext := substr(getext, -2)
-	LV_Modify(current-a_index,"", new_name . a_space . previous-a_index . "of" . previous . "." ext)
- }
- LV_Modify(0, "-Select")
- Sleep, 10
- LV_Modify(current, "Select")
- Gosub, Continue
-return
+		isValid := true
 
-Continue:
-	GuiControl, enable, SAP
-	GuiControl, enable, press
-	
-	old_name := new_name
-	new_name := RegexReplace(preview, "Preview:\s", "")
-	if (!file_dir || !new_name || dept = "XX" || day = "XX" || month = "XX" || year = "XX")
-	{
-		new_name := old_name
-		return
-	}
-	current += 1
-	char :=
-	Loop, Parse, olddepdate, |
-		old%a_loopfield% := %a_loopfield%
-	old_name:= file_dir . "\" . cur_file
-	if FileExist(file_dir . "\" . new_name)
-	{
-		current -= 1
-		Msgbox,64,% "File exists", % "The file name you specified already exist. Please type another name"
-		GuiControl, Focus, name
-		Send, {Home}+{End}
-		return
-	}
-	FileMove, %old_name%, %file_dir%\%new_name%
-	addfiles("continue")
-return
+	Gui, font, % isValid ? "" : "cRed"
+	GuiControl, font, % "namePreview"
 
-Preview:
-	Gui, Submit, NoHide
-	preview := ""
-	if (RegexMatch(%A_GuiControl%, "\d{2}") || (a_guicontrol = "dept" && %a_guicontrol%  == ""))
-	{
-		Gui, Font
-		GuiControl, Font, % A_GuiControl
-		send {tab}
-	}
-	else if (A_GuiControl != "name")
-	{
-		preview := "Invalid"
-		Gui, Font, cRed
-		GuiControl, Font, % A_GuiControl
-	}
+	name := trim(RegExReplace(name, "((?:[[:upper:]]+)?[[:lower:]]+(?:[[:upper:]]+)?(?:[[:lower:]]+)?)", "$T{1}"))
+	namePreview := (dept ? dept " - " : "") day "-" month "-" year " - " name (fileExt ? "."  fileExt : "")
 
-	if (a_guicontrol = "dept" && %a_guicontrol%  != "" && !RegExMatch(%a_guicontrol%, "(0[1-9]|1[0-2]|99)") )
-	{
-		preview := "Invalid"
-		Gui, Font, cRed
-		GuiControl, Font, % A_GuiControl
-	}
-
-
-	Loop, Parse, depdate, |
-	{
-		var := %a_loopfield%
-		if a_loopfield = %var%
-			%a_loopfield% := "XX"
-	}
-
-	line :=
-	Loop, Parse, name, %a_space%
-	{
-		if a_loopfield is upper
-			line .= a_space a_loopfield
-		else 
-			line .= format("{:T}",a_loopfield) A_Space
-	}
-
-	preview := % "Preview: " (InStr(preview,"invalid") ? preview 
-													   : (dept ? format("{:02}",dept) " - " : "") format("{:02}",year) "-" format("{:02}",month) "-" format("{:02}",day) " - " trim(line) "." ext)
-
-	GuiControl,, Preview, % preview
-return
-
-2GuiEscape:
-2GuiClose:
-GuiClose:
- if a_gui = 2
- {
-	Gui, 2: Destroy
-	toggle :=
- }
- else
-	Exitapp
-return
-;-
-
-;+--> ; ---------[Functions]---------
-Anchor(c, a, r = false) { ; v3.5.1 - Titan
-	/*
-	Function: Anchor
-		Defines how controls should be automatically positioned relative to the new
-		dimensions of a window when resized.
-
-	Parameters:
-		c - a control associated variable name to operate on
-		a - (optional) one or more of the anchors: 'x', 'y', 'w' (width) and 'h' (height),
-			optionally followed by a relative factor, e.g. "x h0.5"
-		r - (optional) true to redraw controls, recommended for GroupBox and Button types
-
-	Examples:
-> "xy" ; bounds a control to the bottom-left edge of the window
-> "w0.5" ; any change in the width of the window will resize the width of the control on a 2:1 ratio
-> "h" ; similar to above but directrly proportional to height
-
-	Remarks:
-		To assume the current window size for the new bounds of a control (i.e. resetting)
-		simply omit the second and third parameters.
-		However if the control had been created with DllCall() and has its
-		own parent window, the container AutoHotkey created GUI must be made default
-		with the +LastFound option prior to the call.
-		For a complete example see anchor-example.ahk.
-
-	License:
-		- Version 3.5.1 <http://www.autohotkey.net/~Titan/#anchor>
-		- Simplified BSD License <http://www.autohotkey.net/~Titan/license.txt>
-	 */
-  static d
-  GuiControlGet, p, Pos, %c%
-  If !A_Gui or ErrorLevel
-	Return
-  i = x.w.y.h./.7.%A_GuiWidth%.%A_GuiHeight%.`n%A_Gui%:%c%=
-  StringSplit, i, i, .
-  d .= (n := !InStr(d, i9)) ? i9 :
-  Loop, 4
-	x := A_Index, j := i%x%, i6 += x = 3
-	, k := !RegExMatch(a, j . "([\d.]+)", v) + (v1 ? v1 : 0)
-	, e := p%j% - i%i6% * k, d .= n ? e . i5 : ""
-	, RegExMatch(d, RegExReplace(i9, "([[\\\^\$\.\|\?\*\+\(\)])", "\$1")
-	. "(?:([\d.\-]+)/){" . x . "}", v)
-	, l .= InStr(a, j) ? j . v1 + i%i6% * k : ""
-  r := r ? "Draw" :
-  GuiControl, Move%r%, %c%, %l%
+	GuiControl,, % "namePreview", % "Preview: " (isValid ? namePreview : "Invalid")
 }
-addfiles(type){
-	global
-	if (type = "drop")
+
+Save(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
+{
+	global day,month,namePreview
+
+	Gui, main:submit, nohide
+	GuiControlGet, namePreview
+
+	if (InStr(namePreview,"invalid")) {
+		MsgBox, % 0x10
+			  , % "Error"
+			  , % "The name you are trying to save is not valid"
+		return
+	}
+
+	GuiControl, enable, % "nextPage"
+	GuiControl, enable, % "pressAsterisk"
+
+	LV_GetText(filePath, row := (next:=LV_GetNext(0, "F")) ? next : 1, 2)
+
+	SplitPath, filePath, fileName, fileDir, fileExt
+	SetWorkingDir, % fileDir
+
+	newFileName := RegExReplace(namePreview, "Preview: ")
+
+	Try
+		FileMove, % filePath, % newFileName
+	Catch, fmError
 	{
-		Sort, a_guievent, N
-		Loop, Parse, a_guievent, `n,`r
+		MsgBox, % 0x10
+		, % "Error"
+		, % "There was an error saving " newFileName ".`n`n"
+		.   "The name you entered might already exist or you dont have permissions to write to that location.`n`n"
+		.   "Error Code:" A_LastError
+		return
+	}
+
+	LV_Modify(row, "-select -focus", newFileName, A_WorkingDir "\" newFileName), LV_Modify(row+1, "focus select")
+
+	GuiControl,, % "day"
+	GuiControl,, % "month", % "month"
+
+	GuiControl, focus, % "day"
+
+	if (!LV_GetNext(0, "F")) {
+		finish()
+	}
+}
+
+Next(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
+{
+	global
+	static currentPage := 1
+	static ctrlList := "dept|day|month|year|name|namePreview|saveContinue|pressEnter|lbDept|hkTab|lbDate|lbMagnify"
+
+	Gui, main:default
+	if (GuiEvent = "endCycle") {
+		for i,ctrl in StrSplit(ctrlList, "|") {
+			GuiControl, enable, % ctrl
+		}
+		
+		GuiControl, , % "pressAsterisk", % "{ * }"
+		currentPage := 1
+		return
+	} else {
+		for i,ctrl in StrSplit(ctrlList, "|") {
+			GuiControl, disable, % ctrl
+		}
+
+		GuiControl, , % "pressAsterisk", % "{ - }"
+	}
+
+	LV_GetText(currFile, row := LV_GetNext(0, "F"), 2)
+	LV_GetText(prevFile, row - 1, 2)
+
+	SplitPath, currFile,,, currFileExt
+	SplitPath, prevFile,, prevFileDir, prevFileExt, prevFileName
+	SetWorkingDir, % prevFileDir
+
+	if (!RegExMatch(prevFile, "\bP\d{2}\b")) {
+		Try
+			FileMove, % prevFile, % newFileName := prevFileName " P" Format("{:02}",currentPage++) "." prevFileExt
+		Catch, fmError
 		{
-			SplitPath, a_loopfield,file_name, file_dir
-			StringLower, file_name, file_name
-			LV_Add("",file_name,1)
+			MsgBox, % 0x10
+			, % "Error"
+			, % "There was an error saving " newFileName ".`n`n"
+			.   "The name you entered might already exist or you dont have permissions to write to that location.`n`n"
+			.   "Error Code:" A_LastError
+			return
 		}
-		LV_Modify(1, "Select")
-		LV_GetText(cur_file, 1)
-		if (inStr(cur_file, "jpeg"))
-			ext := substr(cur_file, -3)
-		else ext := substr(cur_file, -2)
 
-		if (LockDept){
-			GuiControl,, Preview, % "Preview: " . dept . "  - XX-XX-XX - Name." . ext
-		}
-		else GuiControl,, Preview, % "Preview: XX - XX-XX-XX - Name." . ext
-
-		start()
+		LV_Modify(row - 1,"", newFileName, A_WorkingDir "\" newFileName)
+	} else {
+		RegExMatch(prevFileName, "\bP(\d{2})\b", match)
+		currentPage := match1 + 1
+		prevFileName := RegExReplace(prevFileName, "\b\sP\d{2}\b")
 	}
-	if (type = "continue")
+
+	Try
+		FileMove, % currFile, % newFileName := prevFileName " P" Format("{:02}",currentPage) "." currFileExt
+	Catch, fmError
 	{
-		LV_GetText(cur_file, current)
-		if (inStr(cur_file, "jpeg"))
-			ext := substr(cur_file, -3)
-		else
-			ext := substr(cur_file, -2)
-		LV_Modify(0, "-Select")
-		LV_Modify(current-1, "", new_name)
-		LV_Modify(current, "Select")
-		if (!cur_file){
-			Msgbox,68, % "End of image list", % "This was the last picture.`nDo you want to move the files to their corresponding directories?"
-			IfMsgbox, No
-				ExitApp
-			moveFiles()
-		}
-		reset()
-		start()
+		MsgBox, % 0x10
+		, % "Error"
+		, % "There was an error saving " newFileName ".`n`n"
+		.   "The name you entered might already exist or you dont have permissions to write to that location.`n`n"
+		.   "Error Code:" A_LastError
+		return
+	}
+
+	LV_Modify(row,"-select -focus", newFileName, A_WorkingDir "\" newFileName), LV_Modify(row+1, "focus select")
+	if (!LV_GetNext(0, "F")) {
+		finish()
 	}
 }
-start(){
-	global
-	WinActivate, % "CRename"
-	GuiControl,, pic, % file_dir . "\" . cur_file
 
-	GuiControl,Focus, dept
-	Send, {Home}+{End}
-	char :=
-}
-reset(){
-	global
+lvHandler(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
+{
+	global pic
 
-	GuiControl,,dept, % dept
-	GuiControl,,day, % "day"
-	GuiControl,,month, % "month"
-	GuiControl,,year, % year
-	GuiControl,,name, % "Name"
-
-							if (LockDept){
-		GuiControl,, Preview, % "Preview: " . dept . "  - XX-XX-XX - Name." . ext
+	if (EventInfo && GuiEvent = "normal") {
+		LV_GetText(picPath, EventInfo, 2)
+		GuiControl,, pic, % picPath
 	}
-	else GuiControl,, Preview, % "Preview: XX - XX-XX-XX - Name." . ext
-
-	char :=
+	OutputDebug, % guievent
 }
-gdisable(mode){
-	global
-	nlist := olddepdate . "|preview|SAC"
-	Loop, Parse, nlist, |
+
+mainGuiDropFiles(GuiHwnd, FileArray, CtrlHwnd, X, Y)
+{
+	global $Main
+	Gui, main:default
+
+	for i,filePath in FileArray {
+		SplitPath, filePath, fileName
+		LV_Add("", fileName, filePath)
+	}
+
+	LV_Modify(1, "focus select")
+	Preview(CtrlHwnd, "DropFiles", GuiHwnd)
+
+	LV_GetText(picPath, 1, 2)
+	GuiControl,, pic, % picPath
+
+	WinActivate, % "ahk_id " $Main
+}
+
+finish()
+{
+	global depSettings
+	MsgBox, % 0x4 + 0x20
+	, % "Confirmation"
+	, % "You just finished renaming all files.`n"
+	.   "Do you want to move all files to their respective departments?"
+
+	IfMsgBox, No
+		ExitApp, 0
+
+	Loop, 13
 	{
-		if (LockDept && a_loopfield = "dept"){
-			continue
+		index := A_Index = 13 ? 99 : A_Index
+		IniRead, depPath, % depSettings, % "Departments", % depIndex := format("{:02}", index)
+		if (!FileExist(depPath)) {
+			FileCreateDir, % depPath
 		}
-		GuiControl,%mode%,%a_loopfield%
-	}
-	if (mode = "disable")
-	{
-		GuiControl,,press, % "{ - } to break cycle"
-		; change color
-	}
-	if (mode = "enable")
-		GuiControl,,press, % "{ * }"
 
-	start()
-	char :=
+		Loop, Files, % A_WorkingDir "\*.*"
+		{
+			if (RegExMatch(A_LoopFileName, "^" depIndex "\s-\s")) {
+				FileMove, % A_LoopFileFullPath, % depPath
+			}
+		}
+	}
+	MsgBox, % 0x40, % "Completed", % "All files have been moved."
+	ExitApp, 0
 }
-crop(file){
+
+crop(file)
+{
 	global iview
-	Run, %iview% "%file% /info=%a_temp%\tmp /killmesoftly",,UseErrorLevel
-	Sleep, 100
-	FileRead, finfo, %a_temp%\tmp
-	FileDelete, %a_temp%\tmp
-	if (inStr(file, "jpeg"))
-			ext := substr(file, -3)
-		else
-			ext := substr(file, -2)
-	RegexMatch(finfo, "Image dimensions = ((\d+)\sx\s(\d+))", wh) ; Width = wh2 Height = wh3
+	RunWait, %iview% "%file% /info=%A_Temp%\tmp /killmesoftly"
+	FileRead, finfo, % A_Temp "\tmp"
+	FileDelete, % A_Temp "\tmp"
+	
+	RegExMatch(file, "\..*$", ext)
+	RegexMatch(finfo, "O)Image dimensions = (?:(?<width>\d+)\sx\s(?<height>\d+))", size) ; Width = wh2 Height = wh3
 
-	top := "(0,0," . wh2 . "," . RegexReplace(wh3/2,"\.\d+","") . ")"
-	bottom := "(0," . RegexReplace(wh2/2,"\.\d+","") . "," . wh2 . "," . RegexReplace(wh3/2,"\.\d+","") . ")"
+	top := "(0,0," size.width "," Format("{:d}", size.height/2) ")"
+	bottom := "(0," Format("{:d}", size.height/2) "," size.width "," Format("{:d}", size.height/2) ")"
 
-	RunWait, %iview% "%file% /crop=%top% /convert=%a_temp%\top.%ext% /killmesoftly",,UseErrorLevel
-	Run, %iview% "%file% /crop=%bottom% /convert=%a_temp%\bottom.%ext% /killmesoftly",,UseErrorLevel
-	FileDelete, res\*.ini
+	RunWait, %iview% "%file% /crop=%top% /convert=%A_Temp%\top.%ext% /killmesoftly"
+	RunWait, %iview% "%file% /crop=%bottom% /convert=%A_Temp%\bottom.%ext% /killmesoftly"
 	return ext
 }
-moveFiles()
-{
-	Loop, Files, %A_WorkingDir%\*.*
-	{
-		OutputDebug, % A_LoopFileFullPath
-	}
-}
-WM_LBUTTONUP(wParam, lParam)
-{
-	if (a_guicontrol = "dept" || a_guicontrol = "day" || a_guicontrol = "month"
-	||  a_guicontrol = "year" || a_guicontrol = "name")
-	{
-		GuiControl,Focus,%a_guicontrol%
-		Send, ^a
-	}
-}
-;-
 
-;+--> ; ---------[Hotkeys/Hotstrings]---------
-#IfWinActive CRename
-!Esc::ExitApp
-Pause::Reload
-F12::Pause
+#IfWinActive, CRename
 
-NumpadMult::Gosub, Previous
-
-; Tab::
-; Gosub, preview
-; send {tab}
-; return
-
-; +Tab::
-; Gosub, preview
-; send +{tab}
-; return
-
--::
-NumpadSub::
- previous := 1
- gdisable("enable")
-return
-
+-::Next(0, "endCycle", 0)
+NumpadSub::Next(0, "endCycle", 0)
+NumpadMult::Next(0, "beginCycle", 0)
 NumpadAdd::
- if (!LV_GetCount()){
-	MsgBox,64,% "", % "There is no image to preview"
-	return
- }
- toggle++
- if toggle = 1
- {
-	t_ext := crop(file_dir . "\" . cur_file) ; save temporal extension for later use
-	Gui, 2: +ToolWindow
-	Gui, 2: add, Picture,w%wa_Right% h-1 x0 y0 +Border vpic2, % a_temp . "\top." . t_ext
-	Gui, 2: Show
- }
- else if toggle = 2
-	GuiControl, 2:, pic2, % a_temp . "\bottom." . t_ext
- else
- {
-	Gui, 2: Destroy
-	toggle :=
- }
+	Gui, main:default
+	
+	if (!row := LV_GetNext(0, "F")){
+		MsgBox,% 0x10, % "Error", % "Select a file to preview"
+		return
+	}
+	
+	LV_GetText(filePath, row, 2)
+	SplitPath, filePath, fileName, fileDir
+
+	toggle++
+	if (toggle == 1) {
+		ext := crop(filePath) ; save temporal extension for later use
+		
+		Gui, cropped:new, +toolwindow
+		Gui, add, Picture,w%screen_Right% h-1 x0 y0 +border vpic2, % A_Temp "\top." ext
+		Gui, Show, noActivate
+	} else if (toggle == 2) {
+		GuiControl, cropped:, pic2, % A_Temp "\bottom." ext
+	} else {
+		for i,file in ["top", "bottom"]
+			FileDelete, % A_Temp "\" file "." ext
+		
+		Gui, cropped:Destroy
+		toggle := 0
+	}
 return
+
 #IfWinActive
-;-
-
-;+--> ; ---------[Includes]---------
-;-
-
-/*
- * =============================================================================================== *
- *                                            END OF FILE
- * =============================================================================================== *
- */
