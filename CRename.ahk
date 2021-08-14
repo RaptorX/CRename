@@ -140,7 +140,10 @@ Preview(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 		GuiControl, font, % A_GuiControl
 	}
 
-	if !RegExMatch(dept day month year name, "i)dept|day|month|year|^name$")
+	if  (name != "")
+	and !RegExMatch(name, "i)^name$")
+	and !RegExMatch(name, "[\\/:*?""<>|]")
+	and !RegExMatch(dept day month year, "i)dept|day|month|year")
 		isValidName := true
 
 	if (A_GuiControl != "name" && isValidControl)
