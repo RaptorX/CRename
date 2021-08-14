@@ -140,14 +140,20 @@ Preview(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 		GuiControl, font, % A_GuiControl
 	}
 
-	if  (name != "")
+	GuiControlGet, namePreview
+
+	if  (name)
+	and (RegExMatch(dept, "(0[1-9]|1[0-2]|99)") || dept == "")
+	and RegExMatch(day  , "(0[0-9]|[1-2][0-9]|3[0-1])")
+	and RegExMatch(month, "(0[0-9]|1[0-2])")
+	and RegExMatch(year , "\d{2}")
 	and !RegExMatch(name, "i)^name$")
 	and !RegExMatch(name, "[\\/:*?""<>|]")
 	and !RegExMatch(dept day month year, "i)dept|day|month|year")
 		isValidName := true
 
-	if (A_GuiControl != "name" && isValidControl)
-	&& (WinActive("ahk_id " $Main))
+	if  (A_GuiControl != "name" && isValidControl)
+	and (WinActive("ahk_id " $Main))
 	{
 		if (A_GuiControl == "month" && year ~= "\d+")
 			Send, {Tab 2}
@@ -159,9 +165,9 @@ Preview(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 	GuiControl, font, % "namePreview"
 
 	name := trim(RegExReplace(name, "((?:[[:upper:]]+)?[[:lower:]]+(?:[[:upper:]]+)?(?:[[:lower:]]+)?)", "$T{1}"))
-	namePreview := (dept ? dept " - " : "") day "-" month "-" year " - " name (fileExt ? "."  fileExt : "")
+	preview := (dept ? dept " - " : "") day "-" month "-" year " - " name (fileExt ? "."  fileExt : "")
 
-	GuiControl,, % "namePreview", % "Preview: " (isValidName ? namePreview : "Invalid")
+	GuiControl,, % "namePreview", % "Preview: " (isValidName ? preview : "Invalid")
 }
 
 Save(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
@@ -171,7 +177,8 @@ Save(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 	Gui, main:submit, nohide
 	GuiControlGet, namePreview
 
-	if (InStr(namePreview,"invalid")) {
+	if (InStr(namePreview,"invalid"))
+	{
 		MsgBox, % 0x10
 			  , % "Error"
 			  , % "The name you are trying to save is not valid"
