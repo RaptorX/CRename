@@ -118,7 +118,8 @@ WM_LBUTTONUP(wParam, lParam, msg, hwnd)
 Preview(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 {
 	global dept,day,month,year,name,namePreview,$Main
-	isValid := false
+	isValidName := false
+	isValidControl := false
 
 	Gui, main:submit, nohide
 
@@ -126,37 +127,38 @@ Preview(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 	SplitPath, filePath,,, fileExt
 
 	; independently verify each control
-	ctrlValue := %A_GuiControl%
-	if (A_GuiControl = "dept" && (RegExMatch(ctrlValue, "(0[1-9]|1[0-2]|99)") || ctrlValue == ""))
-	or (A_GuiControl = "day" && RegExMatch(ctrlValue, "(0[0-9]|[1-2][0-9]|3[0-1])"))
-	or (A_GuiControl = "month" && RegExMatch(ctrlValue, "(0[0-9]|1[0-2])"))
-	or (A_GuiControl = "year" && RegExMatch(ctrlValue, "\d{2}"))
-	or (A_GuiControl = "name" && !RegExMatch(ctrlValue,"[\\/:*?""<>|]"))
-		isValid := true
+	if (A_GuiControl = "dept"  && (RegExMatch(dept, "(0[1-9]|1[0-2]|99)") || dept == ""))
+	or (A_GuiControl = "day"   && RegExMatch(day  , "(0[0-9]|[1-2][0-9]|3[0-1])"))
+	or (A_GuiControl = "month" && RegExMatch(month, "(0[0-9]|1[0-2])"))
+	or (A_GuiControl = "year"  && RegExMatch(year , "\d{2}"))
+	or (A_GuiControl = "name"  && !RegExMatch(name, "[\\/:*?""<>|]"))
+			isValidControl := true
 
-	if (!RegExMatch(A_GuiControl, "i)filelist|pic")) {
-		Gui, font, % isValid ? "" : "cRed"
+	if (!RegExMatch(A_GuiControl, "i)filelist|pic"))
+	{
+		Gui, font, % isValidControl ? "" : "cRed"
 		GuiControl, font, % A_GuiControl
 	}
 
-	if (A_GuiControl != "name" && isValid)
+	if !RegExMatch(dept day month year name, "i)dept|day|month|year|^name$")
+		isValidName := true
+
+	if (A_GuiControl != "name" && isValidControl)
 	&& (WinActive("ahk_id " $Main))
+	{
+		if (A_GuiControl == "month" && year ~= "\d+")
+			Send, {Tab 2}
+		else
 		Send, {Tab}
+	}
 
-	if (RegExMatch(dept day month year name, "i)dept|day|month|year"))
-	or (RegExMatch(name,"[\\/:*?""<>|]"))
-	or (name = "")
-		isValid := false
-	else
-		isValid := true
-
-	Gui, font, % isValid ? "" : "cRed"
+	Gui, font, % isValidName ? "" : "cRed"
 	GuiControl, font, % "namePreview"
 
 	name := trim(RegExReplace(name, "((?:[[:upper:]]+)?[[:lower:]]+(?:[[:upper:]]+)?(?:[[:lower:]]+)?)", "$T{1}"))
 	namePreview := (dept ? dept " - " : "") day "-" month "-" year " - " name (fileExt ? "."  fileExt : "")
 
-	GuiControl,, % "namePreview", % "Preview: " (isValid ? namePreview : "Invalid")
+	GuiControl,, % "namePreview", % "Preview: " (isValidName ? namePreview : "Invalid")
 }
 
 Save(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
