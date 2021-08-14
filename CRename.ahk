@@ -304,6 +304,11 @@ mainGuiDropFiles(GuiHwnd, FileArray, CtrlHwnd, X, Y)
 	WinActivate, % "ahk_id " $Main
 }
 
+mainGuiClose()
+{
+	ExitApp, 0
+}
+
 finish()
 {
 	global depSettings
