@@ -325,7 +325,10 @@ finish()
 		index := A_Index = 13 ? 99 : A_Index
 		IniRead, depPath, % depSettings, % "Departments", % depIndex := format("{:02}", index)
 		if (!FileExist(depPath)) {
-			FileCreateDir, % depPath
+			MsgBox, % 0x10
+			, % "Error"
+			, % "The folder path " depPath " Does not exist.`n"
+			.   "Files for that department wont be moved."
 		}
 
 		Loop, Files, % A_WorkingDir "\*.*"
@@ -333,6 +336,12 @@ finish()
 			if (RegExMatch(A_LoopFileName, "^" depIndex "\s-\s")) {
 				FileMove, % A_LoopFileFullPath, % depPath
 			}
+			; else {
+			; 	if (!FileExist("renamed"))
+			; 		FileCreateDir, renamed
+				
+			; 	FileMove, % A_LoopFileFullPath, % "renamed"
+			; }
 		}
 	}
 	MsgBox, % 0x40, % "Completed", % "All files have been moved."
