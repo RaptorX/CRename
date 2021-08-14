@@ -65,14 +65,14 @@ for i,file in ["departments.ini", iviewPath, emptyPath]
 		FileInstall, res\i_view32.exe, % iviewPath, % true
 		FileInstall, res\empty.png, % emptyPath, % true
 
-	Loop, 13
-	{
-		index := A_Index = 13 ? 99 : format("{:02}", A_Index)
+		Loop, 13
+		{
+			index := A_Index = 13 ? 99 : format("{:02}", A_Index)
+			
+			deps .= index "=`n"
+		}
 		
-		deps .= index "=`n"
-	}
-		
-	FileAppend, % "[departments]`n" deps, % "departments.ini"
+		FileAppend, % "[departments]`n" deps, % "departments.ini"
 		break
 	}
 }
@@ -149,7 +149,7 @@ Preview(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 		if (A_GuiControl == "month" && year ~= "\d+")
 			Send, {Tab 2}
 		else
-		Send, {Tab}
+			Send, {Tab}
 	}
 
 	Gui, font, % isValidName ? "" : "cRed"
@@ -230,7 +230,7 @@ Next(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 			GuiControl, disable, % ctrl
 		}
 
-		GuiControl, , % "pressAsterisk", % "{ - }"
+		GuiControl, , % "pressAsterisk", % "{ * } or { - } to stop"
 	}
 
 	LV_GetText(currFile, row := LV_GetNext(0, "F"), 2)
@@ -338,7 +338,7 @@ finish()
 		{
 			if (RegExMatch(A_LoopFileName, "^" depIndex "\s-\s")) {
 				FileMove, % A_LoopFileFullPath, % depPath
-			}
+			} 
 			; else {
 			; 	if (!FileExist("renamed"))
 			; 		FileCreateDir, renamed
