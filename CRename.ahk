@@ -387,7 +387,7 @@ NumpadAdd::
 		ext := crop(filePath) ; save temporal extension for later use
 		
 		Gui, cropped:new, +toolwindow
-		Gui, add, Picture,w%screen_Right% h-1 x0 y0 +border vpic2, % A_Temp "\top." ext
+		Gui, add, Picture,% "w" var:=(screen_Right /1.1) " x0 y0 +border vpic2", % A_Temp "\top." ext
 		Gui, Show, noActivate
 	} else if (toggle == 2) {
 		GuiControl, cropped:, pic2, % A_Temp "\bottom." ext
