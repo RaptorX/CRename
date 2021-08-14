@@ -43,23 +43,27 @@ s_email     := "graptorx@gmail.com"     ; Author's contact email
 ;-
 
 ;+--> ; ---------[General Variables]---------
-sec         :=  1000                     ; 1 second
-min         :=  sec * 60                ; 1 minute
-hour        :=  min * 60                ; 1 hour
-; --
 SysGet, screen_, MonitorWorkArea            ; Get the working area of the current screen
+; --
 
 ;+--> ; ---------[User Configuration]---------
-iview := "i_view32.exe"
+iviewPath := A_AppData "\" s_name "\i_view32.exe"
+emptyPath := A_AppData "\" s_name "\empty.png"
 depSettings := A_ScriptDir "\departments.ini"
 ;-
 
 ;+--> ; ---------[Main]---------
 onMessage(0x202, "WM_LBUTTONUP")
 
-if (!FileExist("departments.ini")) {
-	FileInstall, res\i_view32.exe, % "i_view32.exe", % true
-	FileInstall, res\empty.png, % "empty.png", % true
+for i,file in ["departments.ini", iviewPath, emptyPath]
+{
+	if !FileExist(file)
+	{
+		if !FileExist(A_AppData "\" s_name)
+			FileCreateDir, % A_AppData "\" s_name
+		
+		FileInstall, res\i_view32.exe, % iviewPath, % true
+		FileInstall, res\empty.png, % emptyPath, % true
 
 	Loop, 13
 	{
@@ -67,7 +71,10 @@ if (!FileExist("departments.ini")) {
 		
 		deps .= index "=`n"
 	}
+		
 	FileAppend, % "[departments]`n" deps, % "departments.ini"
+		break
+	}
 }
 
 hpic := screen_Bottom - 50 - 10
@@ -75,7 +82,7 @@ lvsz := hpic - 200 +1
 
 Gui, main:new, +MaximizeBox +MinSize hwnd$Main ;+Resize
 
-Gui, add, Picture, w-1 h%hpic% y10 +Border vpic, % "empty.png"
+Gui, add, Picture, w-1 h%hpic% y10 +Border vpic, % emptyPath
 Gui, add, Edit, w40 x+10 yp cRed Section Limit2 Number vdept gPreview, % 00
 Gui, add, Text, x+10 yp+3 vlbDept, % "Department"
 ; Gui, add, Text, x+10 cBlue vhkTab, % "{ Tab } to switch"
@@ -276,7 +283,6 @@ lvHandler(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 		LV_GetText(picPath, EventInfo, 2)
 		GuiControl,, pic, % picPath
 	}
-	OutputDebug, % guievent
 }
 
 mainGuiDropFiles(GuiHwnd, FileArray, CtrlHwnd, X, Y)
@@ -330,8 +336,8 @@ finish()
 
 crop(file)
 {
-	global iview
-	RunWait, %iview% "%file% /info=%A_Temp%\tmp /killmesoftly"
+	global iviewPath
+	RunWait, %iviewPath% "%file% /info=%A_Temp%\tmp /killmesoftly"
 	FileRead, finfo, % A_Temp "\tmp"
 	FileDelete, % A_Temp "\tmp"
 	
@@ -341,8 +347,8 @@ crop(file)
 	top := "(0,0," size.width "," Format("{:d}", size.height/2) ")"
 	bottom := "(0," Format("{:d}", size.height/2) "," size.width "," Format("{:d}", size.height/2) ")"
 
-	RunWait, %iview% "%file% /crop=%top% /convert=%A_Temp%\top.%ext% /killmesoftly"
-	RunWait, %iview% "%file% /crop=%bottom% /convert=%A_Temp%\bottom.%ext% /killmesoftly"
+	RunWait, %iviewPath% "%file% /crop=%top% /convert=%A_Temp%\top.%ext% /killmesoftly"
+	RunWait, %iviewPath% "%file% /crop=%bottom% /convert=%A_Temp%\bottom.%ext% /killmesoftly"
 	return ext
 }
 
