@@ -93,8 +93,8 @@ Gui, add, Text, x+10 yp+3 vlbDate, % "Date"
 Gui, add, Edit, w200 xs y+10 -wantreturn vname gPreview, % "Name"
 Gui, add, Text, w200 r2 y+10 cRed center wrap vnamePreview, % "Preview: Invalid"
 Gui, add, Text, w200 y+10 cBlue center vlbMagnify, % "{ + } to Magnify"
-Gui, add, Button, w100 h25 y+10 disabled vnextPage gNext, % "Same && Next &Page"
-Gui, add, Button, w100 h25 x+10 +default vsaveContinue gSave, % "Save && &Continue"
+Gui, add, Button, w100 h25 y+10 disabled vnextPage gNext, % "Same && Next Page"
+Gui, add, Button, w100 h25 x+10 +default vsaveContinue gSave, % "Save && Continue"
 Gui, add, Text,w100 xs cBlue center disabled vpressAsterisk,% "{ * }"
 Gui, add, Text,w100 x+10 cBlue center vpressEnter,% "{ Enter }"
 Gui, add, ListView, w230 h%lvsz% xs y+15 grid sort altsubmit -hdr -tabstop vFileList glvHandler, % "fileName|filePath"
@@ -102,7 +102,7 @@ Gui, add, ListView, w230 h%lvsz% xs y+15 grid sort altsubmit -hdr -tabstop vFile
 LV_ModifyCol(1, 225), LV_ModifyCol(2, 0)
 Gui, Show,, % "CRename"
 
-GuiControl, Focus, dept
+GuiControl, Focus, % "dept"
 Send, {Home}+{End}
 return
 
