@@ -221,6 +221,7 @@ Next(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 			GuiControl, enable, % ctrl
 		}
 		
+		GuiControl, focus, % "day"
 		GuiControl, , % "pressAsterisk", % "{ * }"
 		currentPage := 1
 		return
