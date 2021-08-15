@@ -337,17 +337,31 @@ finish()
 	{
 		index := A_Index = 13 ? 99 : A_Index
 		IniRead, depPath, % depSettings, % "Departments", % depIndex := format("{:02}", index)
-		if (!FileExist(depPath)) {
+		if (!FileExist(depPath))
+		{
+			MsgBox, % 0x24
+			      , % "Path doesn't exist"
+			      , % "The folder path " depPath " does not exist.`n"
+			      .   "Do you want to create it?"
+			
+			IfMsgBox, Yes
+				FileCreateDir, % depPath
+			else
 			MsgBox, % 0x10
-			, % "Error"
-			, % "The folder path " depPath " Does not exist.`n"
-			.   "Files for that department wont be moved."
+				      , % "Path not created"
+				      , % "The folder was not created and the files "
+				      .   "for that department won't be moved."
 		}
 
 		Loop, Files, % A_WorkingDir "\*.*"
 		{
-			if (RegExMatch(A_LoopFileName, "^" depIndex "\s-\s")) {
-				FileMove, % A_LoopFileFullPath, % depPath
+			if (RegExMatch(A_LoopFileName, "^" depIndex "\s-\s"))
+			{
+				try
+					FileMove, % A_LoopFileFullPath, % depPath, false
+				Catch, err
+					FileMove, % A_LoopFileFullPath, % depPath "\*-" A_MSec ".*", false
+
 			} 
 			; else {
 			; 	if (!FileExist("renamed"))
