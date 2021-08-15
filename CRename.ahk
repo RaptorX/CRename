@@ -47,15 +47,28 @@ SysGet, screen_, MonitorWorkArea            ; Get the working area of the curren
 ; --
 
 ;+--> ; ---------[User Configuration]---------
-iviewPath := A_AppData "\" s_name "\i_view32.exe"
-emptyPath := A_AppData "\" s_name "\empty.png"
+dataPath := FileExist(A_AppData) ? A_AppData "\" s_name "\" : ""
+iviewPath := dataPath "i_view32.exe"
+emptyPath := dataPath "empty.png"
 depSettings := A_ScriptDir "\departments.ini"
 ;-
 
 ;+--> ; ---------[Main]---------
 onMessage(0x202, "WM_LBUTTONUP")
 
-for i,file in ["departments.ini", iviewPath, emptyPath]
+if !FileExist("departments.ini")
+{
+	Loop, 13
+	{
+		index := A_Index = 13 ? 99 : format("{:02}", A_Index)
+		
+		deps .= index "=`n"
+	}
+	
+	FileAppend, % "[departments]`n" deps, % "departments.ini"
+}
+
+for i,file in [iviewPath, emptyPath]
 {
 	if !FileExist(file)
 	{
@@ -64,15 +77,6 @@ for i,file in ["departments.ini", iviewPath, emptyPath]
 		
 		FileInstall, res\i_view32.exe, % iviewPath, % true
 		FileInstall, res\empty.png, % emptyPath, % true
-
-		Loop, 13
-		{
-			index := A_Index = 13 ? 99 : format("{:02}", A_Index)
-			
-			deps .= index "=`n"
-		}
-		
-		FileAppend, % "[departments]`n" deps, % "departments.ini"
 		break
 	}
 }
@@ -180,8 +184,8 @@ Save(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 	if (InStr(namePreview,"invalid"))
 	{
 		MsgBox, % 0x10
-			  , % "Error"
-			  , % "The name you are trying to save is not valid"
+		      , % "Error"
+		      , % "The name you are trying to save is not valid"
 		return
 	}
 
@@ -200,10 +204,10 @@ Save(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 	Catch, fmError
 	{
 		MsgBox, % 0x10
-		, % "Error"
-		, % "There was an error saving " newFileName ".`n`n"
-		.   "The name you entered might already exist or you dont have permissions to write to that location.`n`n"
-		.   "Error Code:" A_LastError
+		      , % "Error"
+		      , % "There was an error saving " newFileName ".`n`n"
+		      .   "The name you entered might already exist or you dont have permissions to write to that location.`n`n"
+		      .   "Error Code:" A_LastError
 		return
 	}
 
@@ -326,9 +330,9 @@ finish()
 {
 	global depSettings
 	MsgBox, % 0x4 + 0x20
-	, % "Confirmation"
-	, % "You just finished renaming all files.`n"
-	.   "Do you want to move all files to their respective departments?"
+	      , % "Confirmation"
+	      , % "You just finished renaming all files.`n"
+	      .   "Do you want to move all files to their respective departments?"
 
 	IfMsgBox, No
 		ExitApp, 0
@@ -347,7 +351,7 @@ finish()
 			IfMsgBox, Yes
 				FileCreateDir, % depPath
 			else
-			MsgBox, % 0x10
+				MsgBox, % 0x10
 				      , % "Path not created"
 				      , % "The folder was not created and the files "
 				      .   "for that department won't be moved."
@@ -362,7 +366,7 @@ finish()
 				Catch, err
 					FileMove, % A_LoopFileFullPath, % depPath "\*-" A_MSec ".*", false
 
-			} 
+			}
 			; else {
 			; 	if (!FileExist("renamed"))
 			; 		FileCreateDir, renamed
