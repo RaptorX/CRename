@@ -181,6 +181,7 @@ Save(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 
 	Gui, main:submit, nohide
 
+	GuiControlGet, namePreview
 	if (InStr(namePreview,"invalid") || !row := LV_GetNext(0, "F"))
 	{
 		MsgBox, % 0x10
@@ -190,7 +191,6 @@ Save(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 	}
 
 	GuiControlGet, year
-	GuiControlGet, namePreview
 
 	IniWrite, % year, % depSettings, % "date", % "year"
 	GuiControl, enable, % "nextPage"
