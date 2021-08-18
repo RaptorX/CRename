@@ -2,7 +2,7 @@
 	* =============================================================================================== *
 	* Author           : RaptorX   <graptorx@gmail.com>
 	* Script Name      : CRename
-	* Script Version   : 1.8
+	* Script Version   : 1.9
 	* Homepage         : -
 	*
 	* Creation Date    : September 18, 2010
@@ -37,7 +37,7 @@
 
 ;+--> ; ---------[Basic Info]---------
 s_name      := "CRename"                ; Script Name
-s_version   := "1.8"                    ; Script Version
+s_version   := "1.9"                    ; Script Version
 s_author    := "RaptorX"                ; Script Author
 s_email     := "graptorx@gmail.com"     ; Author's contact email
 ;-
@@ -84,6 +84,7 @@ for i,file in [iviewPath, emptyPath]
 hpic := screen_Bottom - 50 - 10
 lvsz := hpic - 200 +1
 
+IniRead, year, % depSettings, % "date", % "year", % "year"
 Gui, main:new, +MaximizeBox +MinSize hwnd$Main ;+Resize
 
 Gui, add, Picture, w-1 h%hpic% y10 +Border vpic, % emptyPath
@@ -92,7 +93,7 @@ Gui, add, Text, x+10 yp+3 vlbDept, % "Department"
 ; Gui, add, Text, x+10 cBlue vhkTab, % "{ Tab } to switch"
 Gui, add, Edit, w40 xs y+10 cRed Limit2 Number vday gPreview, % "day"
 Gui, add, Edit, w40 x+5 cRed Limit2 Number vmonth gPreview, % "month"
-Gui, add, Edit, w40 x+5 cRed Limit2 Number vyear gPreview, % "year"
+Gui, add, Edit, % "w40 x+5 " (!RegExMatch(year, "\d+") ? "cRed" : "") " Limit2 Number vyear gPreview", % year
 Gui, add, Text, x+10 yp+3 vlbDate, % "Date"
 Gui, add, Edit, w200 xs y+10 -wantreturn vname gPreview, % "Name"
 Gui, add, Text, w200 r2 y+10 cRed center wrap vnamePreview, % "Preview: Invalid"
@@ -176,12 +177,11 @@ Preview(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 
 Save(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 {
-	global day,month,namePreview
+	global depSettings
 
 	Gui, main:submit, nohide
-	GuiControlGet, namePreview
 
-	if (InStr(namePreview,"invalid"))
+	if (InStr(namePreview,"invalid") || !row := LV_GetNext(0, "F"))
 	{
 		MsgBox, % 0x10
 		      , % "Error"
@@ -189,10 +189,14 @@ Save(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 		return
 	}
 
+	GuiControlGet, year
+	GuiControlGet, namePreview
+
+	IniWrite, % year, % depSettings, % "date", % "year"
 	GuiControl, enable, % "nextPage"
 	GuiControl, enable, % "pressAsterisk"
 
-	LV_GetText(filePath, row := (next:=LV_GetNext(0, "F")) ? next : 1, 2)
+	LV_GetText(filePath, row ? row : 1, 2)
 
 	SplitPath, filePath, fileName, fileDir, fileExt
 	SetWorkingDir, % fileDir
