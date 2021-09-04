@@ -93,6 +93,7 @@ for i,file in [iviewPath, emptyPath]
 hpic := screen_Bottom - 50 - 10
 lvsz := hpic - 280 +1
 
+IniRead, year, % depSettings, % "restore", % "year", % SubStr(A_YYYY, -1)
 IniRead, MoveFiles, % depSettings, % "restore", % "MoveFiles", % false
 Gui, main:new, +MaximizeBox +MinSize hwnd$Main ;+Resize
 
