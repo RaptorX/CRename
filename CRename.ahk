@@ -2,7 +2,7 @@
 	* =============================================================================================== *
 	* Author           : RaptorX   <graptorx@gmail.com>
 	* Script Name      : CRename
-	* Script Version   : 1.9
+	* Script Version   : 1.10.24
 	* Homepage         : -
 	*
 	* Creation Date    : September 18, 2010
@@ -37,7 +37,7 @@
 
 ;+--> ; ---------[Basic Info]---------
 s_name      := "CRename"                ; Script Name
-s_version   := "1.9"                    ; Script Version
+s_version   := "1.10.24"                ; Script Version
 s_author    := "RaptorX"                ; Script Author
 s_email     := "graptorx@gmail.com"     ; Author's contact email
 ;-
