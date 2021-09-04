@@ -51,6 +51,15 @@ dataPath := FileExist(A_AppData) ? A_AppData "\" s_name "\" : ""
 iviewPath := A_ScriptDir "\i_view32.exe"
 emptyPath := A_ScriptDir "\empty.png"
 depSettings := A_ScriptDir "\settings.ini"
+
+memo =
+(Ltrim
+	Line1
+	Line2
+	Line3
+	Line4
+	Line5
+)
 ;-
 
 ;+--> ; ---------[Main]---------
@@ -88,6 +97,7 @@ IniRead, MoveFiles, % depSettings, % "restore", % "MoveFiles", % false
 Gui, main:new, +MaximizeBox +MinSize hwnd$Main ;+Resize
 
 Gui, add, Picture, w-1 h%hpic% y10 +Border vpic, % emptyPath
+Gui, add, Text, w230 r5 x+10 cBlue vMemo, % memo
 Gui, add, Checkbox, w180 x+10 yp+3 right -TabStop checked%MoveFiles% vMoveFiles gSave, % "Move Files Automatically"
 Gui, add, Edit, w40 xs y+10 cRed Limit2 Number vday gPreview, % "day"
 Gui, add, Edit, w40 x+5 cRed Limit2 Number vmonth gPreview, % "month"
