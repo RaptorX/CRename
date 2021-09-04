@@ -239,7 +239,8 @@ Save(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 	GuiControl,, % "day"
 	GuiControl,, % "month", % "month"
 
-	GuiControl, focus, % "day"
+	GuiControl, focus, % "dept"
+	Send ^a
 
 	if (!LV_GetNext(0, "F")) {
 		finish()
