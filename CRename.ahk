@@ -98,12 +98,12 @@ Gui, main:new, +MaximizeBox +MinSize hwnd$Main ;+Resize
 
 Gui, add, Picture, w-1 h%hpic% y10 +Border vpic, % emptyPath
 Gui, add, Text, w230 r5 x+10 cBlue vMemo, % memo
+Gui, add, Edit, w40 y+10 cRed Section Limit2 Number vdept gPreview, % 00
 Gui, add, Checkbox, w180 x+10 yp+3 right -TabStop checked%MoveFiles% vMoveFiles gSave, % "Move Files Automatically"
 Gui, add, Edit, w40 xs y+10 cRed Limit2 Number vday gPreview, % "day"
 Gui, add, Edit, w40 x+5 cRed Limit2 Number vmonth gPreview, % "month"
 Gui, add, Edit, % "w40 x+5 " (!RegExMatch(year, "\d+") ? "cRed" : "") " Limit2 Number vyear gPreview", % year
-Gui, add, Text, x+10 yp+3 vlbDate, % "Date"
-Gui, add, Edit, w200 xs y+10 -wantreturn vname gPreview, % "Name"
+Gui, add, Edit, w230 xs y+10 -wantreturn vname gPreview, % "Name"
 Gui, add, Text, w200 r2 y+10 cRed center wrap vnamePreview, % "Preview: Invalid"
 Gui, add, Text, w200 y+10 cBlue center vlbMagnify, % "{ + } to Magnify"
 Gui, add, Button, w100 h25 y+10 disabled vnextPage gNext, % "Same && Next Page"
