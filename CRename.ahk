@@ -84,13 +84,11 @@ for i,file in [iviewPath, emptyPath]
 hpic := screen_Bottom - 50 - 10
 lvsz := hpic - 200 +1
 
-IniRead, year, % depSettings, % "date", % "year", % "year"
+IniRead, MoveFiles, % depSettings, % "restore", % "MoveFiles", % false
 Gui, main:new, +MaximizeBox +MinSize hwnd$Main ;+Resize
 
 Gui, add, Picture, w-1 h%hpic% y10 +Border vpic, % emptyPath
-Gui, add, Edit, w40 x+10 yp cRed Section Limit2 Number vdept gPreview, % 00
-Gui, add, Text, x+10 yp+3 vlbDept, % "Department"
-; Gui, add, Text, x+10 cBlue vhkTab, % "{ Tab } to switch"
+Gui, add, Checkbox, w180 x+10 yp+3 right -TabStop checked%MoveFiles% vMoveFiles gSave, % "Move Files Automatically"
 Gui, add, Edit, w40 xs y+10 cRed Limit2 Number vday gPreview, % "day"
 Gui, add, Edit, w40 x+5 cRed Limit2 Number vmonth gPreview, % "month"
 Gui, add, Edit, % "w40 x+5 " (!RegExMatch(year, "\d+") ? "cRed" : "") " Limit2 Number vyear gPreview", % year
@@ -181,6 +179,13 @@ Save(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 
 	Gui, main:submit, nohide
 
+	if (A_GuiControl == "MoveFiles")
+	{
+		GuiControlGet, MoveFiles
+		IniWrite, % MoveFiles, % depSettings, % "restore", % "MoveFiles"
+		return
+	}
+	
 	GuiControlGet, namePreview
 	if (InStr(namePreview,"invalid") || !row := LV_GetNext(0, "F"))
 	{
@@ -191,8 +196,11 @@ Save(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 	}
 
 	GuiControlGet, year
+	GuiControlGet, MoveFiles
 
-	IniWrite, % year, % depSettings, % "date", % "year"
+	IniWrite, % year, % depSettings, % "restore", % "year"
+	IniWrite, % moveFiles, % depSettings, % "restore", % "MoveFiles"
+
 	GuiControl, enable, % "nextPage"
 	GuiControl, enable, % "pressAsterisk"
 
@@ -333,12 +341,10 @@ mainGuiClose()
 finish()
 {
 	global depSettings
-	MsgBox, % 0x4 + 0x20
-	      , % "Confirmation"
-	      , % "You just finished renaming all files.`n"
-	      .   "Do you want to move all files to their respective departments?"
 
-	IfMsgBox, No
+	GuiControlGet, MoveFiles
+
+	if (!MoveFiles)
 		ExitApp, 0
 
 	Loop, 13
@@ -346,20 +352,7 @@ finish()
 		index := A_Index = 13 ? 99 : A_Index
 		IniRead, depPath, % depSettings, % "Departments", % depIndex := format("{:02}", index)
 		if (!FileExist(depPath))
-		{
-			MsgBox, % 0x24
-			      , % "Path doesn't exist"
-			      , % "The folder path " depPath " does not exist.`n"
-			      .   "Do you want to create it?"
-			
-			IfMsgBox, Yes
-				FileCreateDir, % depPath
-			else
-				MsgBox, % 0x10
-				      , % "Path not created"
-				      , % "The folder was not created and the files "
-				      .   "for that department won't be moved."
-		}
+			continue
 
 		Loop, Files, % A_WorkingDir "\*.*"
 		{
@@ -368,18 +361,14 @@ finish()
 				try
 					FileMove, % A_LoopFileFullPath, % depPath, false
 				Catch, err
-					FileMove, % A_LoopFileFullPath, % depPath "\*-" A_MSec ".*", false
-
+				{
+					overwriteLog .= A_LoopFileFullPath "`n"
+					FileMove, % A_LoopFileFullPath, % "*-" A_MSec "-Dupe.*", false
 			}
-			; else {
-			; 	if (!FileExist("renamed"))
-			; 		FileCreateDir, renamed
-				
-			; 	FileMove, % A_LoopFileFullPath, % "renamed"
-			; }
 		}
 	}
-	MsgBox, % 0x40, % "Completed", % "All files have been moved."
+	}
+
 	ExitApp, 0
 }
 
