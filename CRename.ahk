@@ -109,8 +109,8 @@ Gui, add, Text, w200 r2 y+10 cRed center wrap vnamePreview, % "Preview: Invalid"
 Gui, add, Text, w200 y+10 cBlue center vlbMagnify, % "{ + } to Magnify"
 Gui, add, Button, w100 h25 y+10 disabled vnextPage gNext, % "Same && Next Page"
 Gui, add, Button, w100 h25 x+10 +default vsaveContinue gSave, % "Save && Continue"
-Gui, add, Text,w100 xs cBlue center disabled vpressAsterisk,% "{ * }"
-Gui, add, Text,w100 x+10 cBlue center vpressEnter,% "{ Enter }"
+Gui, add, Text, w100 xs cBlue center disabled vpressAsterisk,% "{ * }"
+Gui, add, Text, w100 x+10 cBlue center vpressEnter,% "{ Enter }"
 Gui, add, ListView, w230 h%lvsz% xs y+15 grid sort altsubmit -hdr -tabstop vFileList glvHandler, % "fileName|filePath"
 
 LV_ModifyCol(1, 225), LV_ModifyCol(2, 0)
@@ -120,12 +120,11 @@ GuiControl, Focus, % "dept"
 Send, {Home}+{End}
 return
 
-
 WM_LBUTTONUP(wParam, lParam, msg, hwnd)
 {
 	static EM_SETSEL := 0x00B1
 
-	if (RegexMatch(A_GuiControl, "dept|day|month|year|name"))
+	if (RegexMatch(A_GuiControl, "dept|day|month|year"))
 		SendMessage, % EM_SETSEL, 0, -1,, % "ahk_id " hwnd
 }
 
