@@ -50,12 +50,13 @@ SysGet, screen_, MonitorWorkArea            ; Get the working area of the curren
 dataPath := FileExist(A_AppData) ? A_AppData "\" s_name "\" : ""
 iviewPath := A_ScriptDir "\i_view32.exe"
 emptyPath := A_ScriptDir "\empty.png"
+depSettings := A_ScriptDir "\settings.ini"
 ;-
 
 ;+--> ; ---------[Main]---------
 onMessage(0x202, "WM_LBUTTONUP")
 
-if !FileExist("departments.ini")
+if !FileExist(depSettings)
 {
 	Loop, 13
 	{
@@ -64,7 +65,7 @@ if !FileExist("departments.ini")
 		deps .= index "=`n"
 	}
 	
-	FileAppend, % "[departments]`n" deps, % "departments.ini"
+	FileAppend, % "[departments]`n" deps, % depSettings
 }
 
 for i,file in [iviewPath, emptyPath]
