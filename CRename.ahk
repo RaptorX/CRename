@@ -211,7 +211,7 @@ Save(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 
 	IniWrite, % year, % depSettings, % "restore", % "year"
 	IniWrite, % moveFiles, % depSettings, % "restore", % "MoveFiles"
-
+	
 	GuiControl, enable, % "nextPage"
 	GuiControl, enable, % "pressAsterisk"
 
@@ -271,7 +271,7 @@ Next(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 			GuiControl, disable, % ctrl
 		}
 
-		GuiControl, , % "pressAsterisk", % "{ * } or { - } to stop"
+		GuiControl, , % "pressAsterisk", % "{ * } cont. or { - } stop"
 	}
 
 	LV_GetText(currFile, row := LV_GetNext(0, "F"), 2)
@@ -382,9 +382,9 @@ finish()
 				{
 					overwriteLog .= A_LoopFileFullPath "`n"
 					FileMove, % A_LoopFileFullPath, % "*-" A_MSec "-Dupe.*", false
+				}
 			}
 		}
-	}
 	}
 
 	ExitApp, 0
@@ -428,8 +428,8 @@ NumpadAdd::
 	if (toggle == 1) {
 		ext := crop(filePath) ; save temporal extension for later use
 		
-		Gui, cropped:new, +toolwindow
-		Gui, add, Picture,% "w" var:=(screen_Right /1.1) " x0 y0 +border vpic2", % A_Temp "\top." ext
+		Gui, cropped:new, +toolwindow +AlwaysOnTop
+		Gui, add, Picture,% "w" var:=(screen_Right / 1.1) " x0 y0 +border vpic2", % A_Temp "\top." ext
 		Gui, Show, noActivate
 	} else if (toggle == 2) {
 		GuiControl, cropped:, pic2, % A_Temp "\bottom." ext
