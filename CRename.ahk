@@ -48,9 +48,8 @@ SysGet, screen_, MonitorWorkArea            ; Get the working area of the curren
 
 ;+--> ; ---------[User Configuration]---------
 dataPath := FileExist(A_AppData) ? A_AppData "\" s_name "\" : ""
-iviewPath := dataPath "i_view32.exe"
-emptyPath := dataPath "empty.png"
-depSettings := A_ScriptDir "\departments.ini"
+iviewPath := A_ScriptDir "\i_view32.exe"
+emptyPath := A_ScriptDir "\empty.png"
 ;-
 
 ;+--> ; ---------[Main]---------
@@ -75,8 +74,8 @@ for i,file in [iviewPath, emptyPath]
 		if !FileExist(A_AppData "\" s_name)
 			FileCreateDir, % A_AppData "\" s_name
 		
-		FileInstall, res\i_view32.exe, % iviewPath, % true
-		FileInstall, res\empty.png, % emptyPath, % true
+		FileInstall, i_view32.exe, % iviewPath, % true
+		FileInstall, empty.png, % emptyPath, % true
 		break
 	}
 }
