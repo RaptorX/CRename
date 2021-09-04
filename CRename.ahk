@@ -235,8 +235,11 @@ Save(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 	}
 
 	LV_Modify(row, "-select -focus", newFileName, A_WorkingDir "\" newFileName), LV_Modify(row+1, "focus select")
+	LV_GetText(picPath, row+1)
 
-	GuiControl,, % "day"
+	GuiControl,, % "pic", % A_WorkingDir "\" picPath	
+	GuiControl,, % "day", % "day"
+	GuiControl,, % "name", % "Name"
 	GuiControl,, % "month", % "month"
 
 	GuiControl, focus, % "dept"
@@ -310,7 +313,10 @@ Next(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 		return
 	}
 
-	LV_Modify(row,"-select -focus", newFileName, A_WorkingDir "\" newFileName), LV_Modify(row+1, "focus select")
+	LV_Modify(row,"-select -focus", newFileName, A_WorkingDir "\" newFileName)
+	LV_Modify(row+1, "focus select"), LV_GetText(picPath, row+1)
+	GuiControl,, % "pic", % A_WorkingDir "\" picPath
+
 	if (!LV_GetNext(0, "F")) {
 		finish()
 	}
