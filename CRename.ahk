@@ -177,6 +177,7 @@ Preview(CtrlHwnd, GuiEvent, EventInfo, ErrLevel:="")
 	Gui, font, % isValidName ? "" : "cRed"
 	GuiControl, font, % "namePreview"
 
+	name := trim(RegExReplace(name, "\s+", " "))
 	name := trim(RegExReplace(name, "((?:[[:upper:]]+)?[[:lower:]]+(?:[[:upper:]]+)?(?:[[:lower:]]+)?)", "$T{1}"))
 	preview := (dept ? dept " - " : "") day "-" month "-" year " - " name (fileExt ? "."  fileExt : "")
 
